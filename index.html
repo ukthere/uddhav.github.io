@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PTM HSS Thrikkaderi</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+    font-family: Arial;
+    background:#eef2f5;
+    display:flex;
+    justify-content:center;
+}
+
+.container{
+    background:white;
+    margin-top:30px;
+    padding:25px;
+    width:100%;
+    max-width:420px;
+    border-radius:12px;
+    box-shadow:0 0 15px rgba(0,0,0,0.2);
+}
+
+h2,h3{text-align:center;}
+
+label{
+    font-size:13px;
+    font-weight:bold;
+    margin-top:10px;
+    display:block;
+}
+
+input, select{
+    width:100%;
+    padding:10px;
+    margin-top:5px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+.phone-group{
+    display:flex;
+    gap:10px;
+}
+
+.code{width:90px;}
+.number{flex:1;}
+
+button{
+    width:100%;
+    padding:10px;
+    margin-top:15px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+.submit-btn{background:#28a745;color:white;}
+.admin-btn{background:#007bff;color:white;}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>PTM HSS Thrikkaderi</h2>
+<h3>Admission Form</h3>
+
+<p id="status"></p>
+
+<form id="form" onsubmit="submitForm(event)">
+
+<label>Student Name</label>
+<input id="name" required>
+
+<label>Parent Name</label>
+<input id="parent" required>
+
+<label>Address</label>
+<input id="address" required>
+
+<label>Previous School</label>
+<input id="school" required>
+
+<label>Email</label>
+<input id="email" type="email" required>
+
+<label>Phone</label>
+<div class="phone-group">
+<select id="countryCode" class="code">
+<option value="+91">+91</option>
+<option value="+1">+1</option>
+</select>
+<input id="phone" class="number" maxlength="10" required>
+</div>
+
+<label>WhatsApp</label>
+<div class="phone-group">
+<select id="whatsappCode" class="code">
+<option value="+91">+91</option>
+<option value="+1">+1</option>
+</select>
+<input id="whatsapp" class="number" maxlength="10" required>
+</div>
+
+<label>Course</label>
+<select id="course" required>
+<option value="">Select</option>
+
+<option>English Medium - Malayalam Language</option>
+<option>English Medium - Sanskrit Language</option>
+<option>English Medium - Arabic Language</option>
+<option>English Medium - Urdu Language</option>
+
+<option>Malayalam Medium - Malayalam Language</option>
+<option>Malayalam Medium - Sanskrit Language</option>
+<option>Malayalam Medium - Arabic Language</option>
+<option>Malayalam Medium - Urdu Language</option>
+
+</select>
+
+<label>Interest (Activity)</label>
+<select id="interest1">
+<option>Nothing</option>
+<option>Little Kites</option>
+<option>Scout and Guide</option>
+<option>JRC</option>
+</select>
+
+<label>Interest (Category)</label>
+<select id="interest2">
+<option>Nothing</option>
+<option>Arts</option>
+<option>Sports</option>
+</select>
+
+<button class="submit-btn">Submit</button>
+
+</form>
+
+<button class="admin-btn" onclick="adminLogin()">Admin Login</button>
+
+</div>
+
+<script>
+
+let admissionOpen = JSON.parse(localStorage.getItem("admissionOpen"));
+if(admissionOpen === null) admissionOpen = true;
+
+document.getElementById("status").innerText =
+admissionOpen ? "✅ Admission Open" : "❌ Admission Closed";
+
+document.getElementById("form").style.display =
+admissionOpen ? "block" : "none";
+
+function submitForm(e){
+e.preventDefault();
+
+if(!admissionOpen){
+alert("Admission Closed");
+return;
+}
+
+let phone = document.getElementById("phone").value;
+let whatsapp = document.getElementById("whatsapp").value;
+
+if(!/^[0-9]{10}$/.test(phone) || !/^[0-9]{10}$/.test(whatsapp)){
+alert("Enter valid 10 digit numbers");
+return;
+}
+
+let student = {
+name: document.getElementById("name").value,
+parent: document.getElementById("parent").value,
+address: document.getElementById("address").value,
+school: document.getElementById("school").value,
+email: document.getElementById("email").value,
+phone: document.getElementById("countryCode").value + " " + phone,
+whatsapp: document.getElementById("whatsappCode").value + " " + whatsapp,
+course: document.getElementById("course").value,
+interest1: document.getElementById("interest1").value,
+interest2: document.getElementById("interest2").value
+};
+
+let students = JSON.parse(localStorage.getItem("students")) || [];
+students.push(student);
+localStorage.setItem("students", JSON.stringify(students));
+
+alert("Submitted!");
+document.getElementById("form").reset();
+}
+
+// 🔐 UPDATED PASSWORD
+function adminLogin(){
+let pass = prompt("Enter Password");
+if(pass === "rajesh@123"){
+window.open("admin.html","_blank");
+}else{
+alert("Wrong password");
+}
+}
+
+</script>
+
+</body>
+</html>
