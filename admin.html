@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Panel</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f2f2f2;
+    text-align:center;
+}
+
+h2{ margin-top:20px; }
+
+button{
+    padding:8px 12px;
+    margin:5px;
+    cursor:pointer;
+    border:none;
+    border-radius:5px;
+}
+
+.box{
+    background:white;
+    margin:10px;
+    padding:12px;
+    border-radius:8px;
+    box-shadow:0 0 5px gray;
+    cursor:pointer;
+}
+
+.student{
+    background:white;
+    padding:12px;
+    margin:10px;
+    border-radius:8px;
+    text-align:left;
+    line-height:1.6;
+}
+
+.control-box{
+    background:#fff;
+    padding:10px;
+    margin:10px;
+    border-radius:8px;
+    box-shadow:0 0 5px gray;
+}
+
+input{
+    padding:8px;
+    width:200px;
+    margin:10px;
+}
+</style>
+
+<!-- Excel Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+</head>
+
+<body>
+
+<h2>Admin Panel</h2>
+
+<button onclick="setAdmission(true)">✅ Start Admission</button>
+<button onclick="setAdmission(false)">❌ Stop Admission</button>
+
+<h3>Search Student</h3>
+<input type="text" id="searchBox" placeholder="Enter name..." oninput="searchStudents()">
+
+<h3>Course Student Count</h3>
+<div id="counts"></div>
+
+<h3>Courses</h3>
+
+<div class="box" onclick="showStudents('English Medium - Malayalam Language')">English Medium - Malayalam Language</div>
+<div class="box" onclick="showStudents('English Medium - Sanskrit Language')">English Medium - Sanskrit Language</div>
+<div class="box" onclick="showStudents('English Medium - Arabic Language')">English Medium - Arabic Language</div>
+<div class="box" onclick="showStudents('English Medium - Urdu Language')">English Medium - Urdu Language</div>
+
+<div class="box" onclick="showStudents('Malayalam Medium - Malayalam Language')">Malayalam Medium - Malayalam Language</div>
+<div class="box" onclick="showStudents('Malayalam Medium - Sanskrit Language')">Malayalam Medium - Sanskrit Language</div>
+<div class="box" onclick="showStudents('Malayalam Medium - Arabic Language')">Malayalam Medium - Arabic Language</div>
+<div class="box" onclick="showStudents('Malayalam Medium - Urdu Language')">Malayalam Medium - Urdu Language</div>
+
+<div id="list"></div>
+
+<script>
+
+// START / STOP
+function setAdmission(status){
+    localStorage.setItem("admissionOpen", status);
+    alert(status ? "Admission Started" : "Admission Stopped");
+}
+
+// COUNT
+function updateCounts(){
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+    let counts = {};
+
+    students.forEach(s=>{
+        counts[s.course] = (counts[s.course]||0)+1;
+    });
+
+    let div = document.getElementById("counts");
+    div.innerHTML = "";
+
+    for(let c in counts){
+        div.innerHTML += `<p><b>${c}</b>: ${counts[c]}</p>`;
+    }
+}
+updateCounts();
+
+// SEARCH
+function searchStudents(){
+    let q = document.getElementById("searchBox").value.toLowerCase();
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+    let list = document.getElementById("list");
+
+    list.innerHTML = "<h3>Search Results</h3>";
+
+    students.filter(s=>s.name.toLowerCase().includes(q)).forEach(s=>{
+        list.innerHTML += `
+        <div class="student">
+            <b>${s.name}</b><br>
+            Parent: ${s.parent || "-"}<br>
+            Address: ${s.address || "-"}<br>
+            School: ${s.school}<br>
+            Email: ${s.email}<br>
+            Phone: ${s.phone}<br>
+            WhatsApp: ${s.whatsapp}<br>
+            Activity: ${s.interest1 || "-"}<br>
+            Category: ${s.interest2 || "-"}
+        </div>`;
+    });
+}
+
+// SHOW STUDENTS
+function showStudents(course){
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+    let filtered = students.filter(s=>s.course===course);
+    let list = document.getElementById("list");
+
+    list.innerHTML = `
+    <div class="control-box">
+        <h3>${course}</h3>
+        <p>Total: ${filtered.length}</p>
+        <button onclick='downloadExcel(${JSON.stringify(filtered)})'>📊 Download Excel</button>
+        <button onclick='deleteAll("${course}")'>🗑️ Delete All</button>
+    </div>
+    `;
+
+    filtered.forEach(s=>{
+        list.innerHTML += `
+        <div class="student">
+            <b>${s.name}</b><br>
+            Parent: ${s.parent || "-"}<br>
+            Address: ${s.address || "-"}<br>
+            School: ${s.school}<br>
+            Email: ${s.email}<br>
+            Phone: ${s.phone}<br>
+            WhatsApp: ${s.whatsapp}<br>
+            Activity: ${s.interest1 || "-"}<br>
+            Category: ${s.interest2 || "-"}
+        </div>`;
+    });
+}
+
+// 📊 EXCEL DOWNLOAD
+function downloadExcel(data){
+    if(data.length === 0){
+        alert("No students!");
+        return;
+    }
+
+    let sheetData = data.map(s => ({
+        Name: s.name,
+        Parent: s.parent,
+        Address: s.address,
+        School: s.school,
+        Email: s.email,
+        Phone: s.phone,
+        WhatsApp: s.whatsapp,
+        Activity: s.interest1,
+        Category: s.interest2
+    }));
+
+    let wb = XLSX.utils.book_new();
+    let ws = XLSX.utils.json_to_sheet(sheetData);
+
+    XLSX.utils.book_append_sheet(wb, ws, "Students");
+    XLSX.writeFile(wb, "Students.xlsx");
+}
+
+// DELETE
+function deleteAll(course){
+    if(!confirm("Delete all students?")) return;
+
+    let students = JSON.parse(localStorage.getItem("students")) || [];
+    students = students.filter(s=>s.course!==course);
+
+    localStorage.setItem("students", JSON.stringify(students));
+
+    updateCounts();
+    showStudents(course);
+}
+
+</script>
+
+</body>
+</html>
